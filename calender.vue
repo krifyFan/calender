@@ -29,12 +29,8 @@
             <!--本月-->
             <!--如果不是本月  改变类名加灰色-->
             <span v-if="dayobject.day.getMonth()+1 != currentMonth" class="other-month">{{ dayobject.day.getDate() }}</span>
-            <!--如果是本月  还需要判断是不是这一天-->
-            <span v-else>
-                <!--今天  同年同月同日-->
-                <p ref="dayLi" @click="selectDay($event)"  v-if="dayobject.day.getFullYear() == new Date().getFullYear() && dayobject.day.getMonth() == new Date().getMonth() && dayobject.day.getDate() == new Date().getDate()" class="curDay curMonthDay">{{ dayobject.day.getDate() }}</p>
-                <p ref="dayLi" class="curMonthDay" @click="selectDay($event)" v-else>{{ dayobject.day.getDate() }}</p>
-            </span>
+            <!--是本月-->
+            <span v-else ref="dayLi" @click="selectDay($event)"  class="curMonthDay">{{ dayobject.day.getDate() }}
         </li>
     </ul>
 </div>
@@ -161,11 +157,21 @@ export default {
         },
         //间隔模式
         interVal(startNum, endNum, intervalNum) {
-            var arr = this.$refs.dayLi;
-            if (endNum > arr.length) endNum = arr.length;
-            while (startNum <= endNum){
-                arr[startNum - 1].setAttribute("class", "active");
-                startNum = Number(startNum) + Number(intervalNum);
+            let arr = this.$refs.dayLi; 
+            for(let i=0; i<arr.length; i++){
+                for(let j=i+1; j< arr.length; j++){
+                    if(Number(arr[i].innerText) > Number(arr[j].innerText)){
+                        let t = arr[i]
+                        arr[i] = arr[j]
+                        arr[j] = t
+                    }
+                }
+            }
+            if (endNum > arr.length) 
+                endNum = arr.length;
+            while (Number(startNum)<=Number(endNum)){
+                arr[startNum-1].setAttribute("class", "active");
+                startNum = Number(startNum) + Number(intervalNum) + Number(1);
             }
         },
         //选择星期
@@ -182,14 +188,20 @@ export default {
         },
         //回显选中的日期
         shwoActiveDate(inspectionTimeCon){
-            var arr = this.$refs.dayLi;
-            for (var i = 0; i < arr.length; i++) {             
-                let t = new Date(this.currentYear, this.currentMonth-1, Number(arr[i].innerText));
-                // 判断当前星期在不在列表中          
-                if (inspectionTimeCon.indexOf(t.getDate()) != -1) {
-                    arr[i].setAttribute("class", "active");
+            this.$nextTick(()=>{
+                let list = []
+                for(let k = 0; k<inspectionTimeCon.length; k++){
+                    list.push(new Date(inspectionTimeCon[k].taskTime).getDate())
                 }
-            }
+                let arr = this.$refs.dayLi;          
+                for (let i = 0; i < arr.length; i++) {
+                    for(let j = 0 ; j<list.length; j++){
+                        if(arr[i].innerText==list[j]){
+                            arr[i].setAttribute("class", "active");
+                        }
+                    }
+                }
+            })
         }
     }
 }
@@ -212,12 +224,14 @@ body {
 #calendar {
     width: 350px;
     margin-top: 20px;
-    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.1), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
+    /* box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.1), 0 1px 5px 0 rgba(0, 0, 0, 0.12); */
+    background: url("../../assets/UM/cardBG.png") no-repeat;
+    background-size: 100% 100%; 
 }
 
 .month {
     width: 100%;
-    background: #1d5f87;
+    /* background: #1d5f87; */
 }
 
 .month ul {
@@ -275,7 +289,7 @@ body {
 
 .days {
     padding: 0;
-    background: #ffffff;
+    /* background: #ffffff; */
     margin: 0;
     display: flex;
     flex-wrap: wrap;
@@ -285,17 +299,17 @@ body {
 .days li {
     list-style-type: none;
     display: inline-block;
-    width: 50px;
+    width: 45px;
     text-align: center;
-    line-height: 50px;
+    line-height: 45px;
     font-size: 1rem;
-    color: #000;
+    color: #FFF;
     cursor: pointer;
 }
 
 .days li .curDay {
     border-radius: 50%;
-    color: #1d5f87;
+    color: #009bfc;
     font-weight: 700
 }
 
@@ -308,12 +322,30 @@ body {
     width: 32px;
     line-height: 32px;
     margin-top: 7px;
-    margin-left: 10px;
-    margin-bottom: 11px;
+    margin-left: 7px;
 }
 
 .days li .other-month {
     padding: 5px;
-    color: gainsboro;
+    color: #827979;
+}
+/* 在屏幕尺寸大于2200px的情况下使用以下样式 */
+@media (min-width: 2200px){
+    #calendar{
+        width: 42vmin;
+    }
+    .days li{
+        width: 6vmin;
+        line-height: 6vmin;
+        font-size: 1.8vmin;
+    }
+    .choose-month, .choose-year{
+        font-size: 2.5vmin;
+    }
+    .days li .active{
+        height: 5vmin;
+        width: 5vmin;
+        line-height: 5vmin;
+    }
 }
 </style>
